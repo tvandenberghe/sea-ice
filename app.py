@@ -29,7 +29,7 @@ def basic_layout():
     """
     return [html.Div(
         [   # add some header text
-            html.H2("Sea ice extent", className="display-4",
+            html.H1("Sea ice extent", className="display-3",
                     style={'textAlign': 'center'})
         ],
         className="sidebar"

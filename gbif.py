@@ -28,7 +28,7 @@ def layout():
         [dcc elements]: An array of Dash components
     """
 
-    return [html.H3("Seal occurrences over the years", className="display-4",
+    return [html.H3("Seal occurrences over all years", className="display-4",
                     style={'textAlign': 'center'}),
             dcc.Dropdown(list(seals.keys()), None,
                          id="dropdown-selection-seal"),
@@ -60,7 +60,7 @@ def update_seal_graph(value: str):
         print(value)
         taxonKey = seals[value]
         years = sea_ice.year.unique()
-        df2['weddell_seal'] = "arbitrary_content"
+        df2['number_of_occurrences'] = "arbitrary_content"
         for year in years:
             # apparently a lot of zeroes get included, skip everything before 1979
             if year > 1978:
