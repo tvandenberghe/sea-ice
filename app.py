@@ -1,88 +1,68 @@
-from dash import Dash, dash, html, dcc, callback, Output, Input
+from dash import dash, html, dcc, callback, Output, Input
 import plotly.express as px
 import pandas as pd
 import urllib.request
+from sea_ice import layout as sea_ice_layout
 from array import array
+import dash_bootstrap_components as dbc
 
-excludes = list(range(48, 59))
-excludes.insert(0, 0)
-excls = array("i", excludes)
-
-df = pd.read_csv("https://psl.noaa.gov/data/timeseries/monthly/data/s_iceextent.mon.data", sep="\s+", skiprows=excls, header=None,
-                 names=["year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], index_col=False)
-app = Dash()
-
-app.layout = [
-    html.H1(children="Sea ice extent", style={"textAlign": "center"}),
-    # create a default, and set the initially selected value to None
-    dcc.Dropdown(df.year.unique(), None, id="dropdown-selection-year"),
-    dcc.Graph(id="yearly-graph"),
-    dcc.Dropdown(["summer", "winter","difference"], "summer",
-                 id="dropdown-selection-season"),
-    dcc.Graph(id="seasonal-graph")
+external_stylesheets = [
+    {"href": "https://fonts.googleapis.com/css2?"
+     "family=Lato:wght@400;700&display=swap",
+        "rel": "stylesheet",
+     },
+    dbc.themes.BOOTSTRAP
 ]
 
-
-def cleanup_yearly_data(dataframe, index1, index2):
-    # make sure the year column is used as an index
-    dataframe = dataframe.set_index(index1)
-    # discard the first column, the year; keep only the rest
-    dataframe = dataframe[df.columns[1:]]
-    # transpose it so we go from [jan,feb,...] to [month, ice_extent]
-    dataframe = dataframe.transpose()
-    # make sure the index is converted to a column
-    dataframe = dataframe.reset_index()
-    # rename the anonymous columns
-    dataframe = dataframe.rename(
-        columns={"index": "month", index2: "ice_extent"})
-    return dataframe
+app = dash.Dash(external_stylesheets=external_stylesheets)
+# name to be dislplayed in browser tab
+app.title = "Sea ice extent and seal evolution"
 
 
-@callback(
-    Output("yearly-graph", "figure"),
-    Input("dropdown-selection-year", "value")
+def basic_layout():
+    return [html.Div(
+        [   # add some header text
+            html.H2("Sea ice extent", className="display-4",
+                    style={'textAlign': 'center'}),
+"""             dbc.Nav(
+                [
+                    dbc.Button("Sea Ice", id="sea_ice_button", color="primary",
+                               style={"width": "20em"}),
+                    dbc.Button("Species occurrences", id="gbif_button",
+                               color="primary", style={"width": "20em"}),
+                ],
+                vertical=True,  # well, that means not horizontally
+                pills=True,  # adds a blue square around the active selection
+                style={"font-size": 20, 'textAlign': 'center'}
+            ) """
+        ],
+        className="sidebar"
+    )]
+
+
+app.layout = basic_layout() + [html.Div(
+    sea_ice_layout(),
+    className="sea_ice")]
+
+
+""" @app.callback(
+    Output("sea_ice", "children"), [Input("sea_ice_button", "n_clicks")]
 )
-def update_yearly_graph(value: int):
-    if value is not None:
-        print("selected year={0}".format(value))
-        # only read the dataframe where the first column equals the selected year
-        df2 = df[df.year == value]
-        df2 = cleanup_yearly_data(df2, "year", value)
-
-        print(df2)
-        return px.line(df2, x="month", y="ice_extent")
+def on_button_click(n):
+    if n is None:
+        return "Not clicked."
     else:
-        return dash.no_update
+        return f"Clicked {n} times."
 
 
-@callback(
-    Output("seasonal-graph", "figure"),
-    Input("dropdown-selection-season", "value")
-)
-def update_seasonal_graph(value: str):
-    # preserve the original
-    df2 = df.copy()
-    #filter out 1978 which has weird values
-    df2 = df2.loc[df2['year'] != 1978]
-    # add average columns  depending on choice
-    if value == "summer":
-        df2["average"] = df2[["jan", "feb",
-                                     "mar", "apr", "may", "jun"]].mean(axis=1)
-    elif value == "winter":
-        df2["average"] = df2[["jul", "aug",
-                                     "sep", "oct", "nov", "dec"]].mean(axis=1)
-    elif value == "difference":
-        df2["average_s"] = df2[["jan", "feb",
-                                     "mar", "apr", "may", "jun"]].mean(axis=1)
-        df2["average_w"] = df2[["jul", "aug",
-                                     "sep", "oct", "nov", "dec"]].mean(axis=1)
-        df2["average"] = df2['average_w'] - df2['average_s'] 
-        df2 = df2.drop(columns=["average_s", "average_w"])
-    # remove all monthly data
-    df2 = df2.drop(columns=["jan", "feb", "mar", "apr", "may", "jun",
-                            "jul", "aug", "sep", "oct", "nov", "dec"])
-    print(df2)
-    return px.line(df2, x="year", y="average")
+@app.callback(
+    Output(component_id='element-to-hide', component_property='style'),
+    [Input(component_id='dropdown-to-show_or_hide-element', component_property='value')])
+def show_hide_element(visibility_state):
+    if visibility_state == 'on':
+        return {'display': 'block'}
+    if visibility_state == 'off':
+        return {'display': 'none'} """
 
 
 if __name__ == "__main__":
