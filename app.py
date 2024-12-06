@@ -3,6 +3,8 @@ import plotly.express as px
 import pandas as pd
 import urllib.request
 from sea_ice import layout as sea_ice_layout
+from gbif import layout as gbif_layout
+
 from array import array
 import dash_bootstrap_components as dbc
 
@@ -20,6 +22,11 @@ app.title = "Sea ice extent and seal evolution"
 
 
 def basic_layout():
+    """Return the basic building blocks of the app.
+
+    Returns:
+        _type_: _description_
+    """
     return [html.Div(
         [   # add some header text
             html.H2("Sea ice extent", className="display-4",
@@ -29,29 +36,9 @@ def basic_layout():
     )]
 
 
-app.layout = basic_layout() + [html.Div(
-    sea_ice_layout(),
-    className="sea_ice")]
-
-
-""" @app.callback(
-    Output("sea_ice", "children"), [Input("sea_ice_button", "n_clicks")]
-)
-def on_button_click(n):
-    if n is None:
-        return "Not clicked."
-    else:
-        return f"Clicked {n} times."
-
-
-@app.callback(
-    Output(component_id='element-to-hide', component_property='style'),
-    [Input(component_id='dropdown-to-show_or_hide-element', component_property='value')])
-def show_hide_element(visibility_state):
-    if visibility_state == 'on':
-        return {'display': 'block'}
-    if visibility_state == 'off':
-        return {'display': 'none'} """
+# enrich the basic layout with the sea ice layout
+app.layout = basic_layout() + [html.Div(sea_ice_layout(), className="sea_ice")] + [
+    html.Div(gbif_layout(), className="gbif")]
 
 
 if __name__ == "__main__":

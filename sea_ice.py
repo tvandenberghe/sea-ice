@@ -2,10 +2,14 @@ from dash import Dash, dash, html, dcc, callback, Output, Input
 import plotly.express as px
 import pandas as pd
 from array import array
-from gbif import load_count
 
 
 def load_sea_ice():
+    """Get the data from NOAA and return a pandas dataframe. Remove junk lines 1 and 49-60
+
+    Returns:
+        pd.DataFrame: the dataframe
+    """
     excludes = list(range(48, 59))
     excludes.insert(0, 0)
     excls = array("i", excludes)
@@ -15,16 +19,37 @@ def load_sea_ice():
 
 sea_ice = load_sea_ice()
 
+selected_year = 0
+
 
 def layout():
-    return [dcc.Dropdown(sea_ice.year.unique(), None, id="dropdown-selection-year"),
+    """Return the necessary HTML elements to draw a yearly graph and a seasonal graph
+
+    Returns:
+        [dcc elements]: An array of Dash components
+    """
+    return [html.H3("Sea ice extent for a given year", className="display-4",
+                    style={'textAlign': 'center'}), 
+            dcc.Dropdown(sea_ice.year.unique(), None, id="dropdown-selection-year"),
             dcc.Graph(id="yearly-graph"),
+            html.H3("Sea ice extent for a given season over all years", className="display-4",
+                    style={'textAlign': 'center'}), 
             dcc.Dropdown(["summer", "winter", "difference"], "summer",
                          id="dropdown-selection-season"),
             dcc.Graph(id="seasonal-graph")]
 
 
 def cleanup_yearly_data(dataframe, index1, index2):
+    """Cleanup yearly data given a dataframe: discard extra columns, fix the indexes and transpose the dataframe
+
+    Args:
+        dataframe (pd.DataFrame): The dataframe
+        index1 (str): The name of the index1 that needs to be added
+        index2 (str): The name of the index1 that needs to be added
+
+    Returns:
+        pd.DataFrame: The cleaned dataframe
+    """
     # make sure the year column is used as an index
     dataframe = dataframe.set_index(index1)
     # discard the first column, the year; keep only the rest
@@ -44,15 +69,23 @@ def cleanup_yearly_data(dataframe, index1, index2):
     Input("dropdown-selection-year", "value")
 )
 def update_yearly_graph(value: int):
+    """Output a graph of sea ice extent for each month of a given year
+
+    Args:
+        value (int): the year of interest
+
+    Returns:
+       px.line: A line with x=months, y=ice extent
+    """
     if value is not None:
         print("selected year={0}".format(value))
         # only read the dataframe where the first column equals the selected year
         df2 = sea_ice[sea_ice.year == value]
         df2 = cleanup_yearly_data(df2, "year", value)
 
-        print(df2)
         return px.line(df2, x="month", y="ice_extent")
     else:
+        # For invalid data, or at page load, return an empty graph element
         return dash.no_update
 
 
@@ -61,6 +94,15 @@ def update_yearly_graph(value: int):
     Input("dropdown-selection-season", "value")
 )
 def update_seasonal_graph(value: str):
+    """Output a graph of sea ice extent for the whole coverage period, given the season.
+
+    Args:
+        value (str): the season. Possible values are 'summer', 'winter' or 'difference'
+
+    Returns:
+        px.line: A line with x=years, y=ice extent
+    """
+    selected_year = value
     # preserve the original
     df2 = sea_ice.copy()
     # filter out 1978 which has weird values
@@ -83,7 +125,4 @@ def update_seasonal_graph(value: str):
     df2 = df2.drop(columns=["jan", "feb", "mar", "apr", "may", "jun",
                             "jul", "aug", "sep", "oct", "nov", "dec"])
 
-    years = sea_ice.year.unique()
-
-    print(df2)
     return px.line(df2, x="year", y="average")
