@@ -12,7 +12,9 @@ def load_sea_ice():
     return pd.read_csv("https://psl.noaa.gov/data/timeseries/monthly/data/s_iceextent.mon.data", sep="\s+", skiprows=excls, header=None,
                        names=["year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], index_col=False)
 
+
 sea_ice = load_sea_ice()
+
 
 def layout():
     return [dcc.Dropdown(sea_ice.year.unique(), None, id="dropdown-selection-year"),
@@ -49,7 +51,6 @@ def update_yearly_graph(value: int):
         df2 = cleanup_yearly_data(df2, "year", value)
 
         print(df2)
-        print(load_count)
         return px.line(df2, x="month", y="ice_extent")
     else:
         return dash.no_update
@@ -81,5 +82,8 @@ def update_seasonal_graph(value: str):
     # remove all monthly data
     df2 = df2.drop(columns=["jan", "feb", "mar", "apr", "may", "jun",
                             "jul", "aug", "sep", "oct", "nov", "dec"])
+
+    years = sea_ice.year.unique()
+
     print(df2)
     return px.line(df2, x="year", y="average")

@@ -23,18 +23,7 @@ def basic_layout():
     return [html.Div(
         [   # add some header text
             html.H2("Sea ice extent", className="display-4",
-                    style={'textAlign': 'center'}),
-"""             dbc.Nav(
-                [
-                    dbc.Button("Sea Ice", id="sea_ice_button", color="primary",
-                               style={"width": "20em"}),
-                    dbc.Button("Species occurrences", id="gbif_button",
-                               color="primary", style={"width": "20em"}),
-                ],
-                vertical=True,  # well, that means not horizontally
-                pills=True,  # adds a blue square around the active selection
-                style={"font-size": 20, 'textAlign': 'center'}
-            ) """
+                    style={'textAlign': 'center'})
         ],
         className="sidebar"
     )]

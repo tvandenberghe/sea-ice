@@ -4,10 +4,7 @@ import plotly.express as px
 import pandas as pd
 
 
-def load_count():
-    count = occurrences.count(taxonKey=2434784, year=1978)
+def load_count(year):
+    count = occurrences.count(taxonKey=2434784, year=year)
     print(count)
     return count
-
-
-gbif_count = load_count()
