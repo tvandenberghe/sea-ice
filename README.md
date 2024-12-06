@@ -6,9 +6,9 @@ Two graph types are available
 -Sea ice extent per month, for a given year
 -Sea ice extent per year, for a given season (winter, summer or difference between both)
 
-# Ice Seal graph
+# Sea ice seal graph
 
-In addition, the number of occurrences from the Weddell Seal (*Leptonychotes weddellii*) are shown for all years. The data is sourced from GBIF.
+In addition, the number of occurrences from the 4 antarcitic sea ice seal species (Weddell Seal, Crabeater seal, Leopard seal and Ross seal) are shown for all years. The data is sourced from GBIF.
 
 # Further ideas
 
